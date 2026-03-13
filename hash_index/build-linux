@@ -1,0 +1,8 @@
+all: hash_index.o
+
+CC = gcc
+CFLAGS = -O2 -c -fPIC -Wall -Wextra -Werror
+BUILD = ../build
+
+hash_index.o: hash_index.c | $(BUILD)
+	$(CC) $(CFLAGS) -I../include $^ -o $(BUILD)/$@

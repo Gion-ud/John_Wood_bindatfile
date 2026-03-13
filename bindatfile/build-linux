@@ -1,0 +1,10 @@
+all: bindatfile.o
+
+CC = gcc
+CFLAGS = -O2 -c -fPIC -Wall -Wextra -Werror
+BUILD = ../build
+
+
+
+bindatfile.o: bindatfile.c | $(BUILD)
+	$(CC) $(CFLAGS) -I../include -I.. $< -o $(BUILD)/$@ -lz
