@@ -1,0 +1,12 @@
+field_name                   size    value
+fileheader.magic                8    BB 01 44 41 54 0D 0A 02
+fileheader.version_major        1    1
+fileheader.version_minor        1    0
+fileheader.flags                2    0x0000
+fileheader.headersize           4    48
+fileheader.footersize           4    12
+fileheader.entrycount           4    31
+fileheader.offtableoff          4    0x00000339
+fileheader.datasectionoff       4    0x00000030
+fileheader.footeroff            4    0x000003b5
+fileheader.timestamp            8    2026-03-08 10:48:56
