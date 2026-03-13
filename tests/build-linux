@@ -1,0 +1,18 @@
+all: mkdatfile datinfo testht
+
+CC = cc
+CFLAGS = -O2 -Wall -Wextra -Werror
+LDFLAGS = -s
+INCLUDE = ../include
+BUILD = ../build
+BIN = ../bin
+
+
+mkdatfile: mkdatfile.c $(BUILD)/bindatfile.o | $(BIN)
+	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@ -lz
+
+datinfo: datinfo.c $(BUILD)/bindatfile.o | $(BIN)
+	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@ -lz
+
+testht: testht.c $(BUILD)/hash_index.o | $(BIN)
+	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@

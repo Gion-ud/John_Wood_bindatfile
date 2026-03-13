@@ -18,6 +18,7 @@
 #include <time.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <signal.h>
 
 #include "global_intdef.h"
 

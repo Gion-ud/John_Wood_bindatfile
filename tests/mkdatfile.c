@@ -55,7 +55,7 @@ __attribute__((packed)) struct array_header {
 
 int main(void) {
     DAT_FILE_OBJECT d_obj = {0};
-    FILE *dat_fp = fopen_checked("data.bin", "wb+");
+    FILE *dat_fp = fopen_checked("output/data.bin", "wb+");
     if (!dat_fp) return errno;
 
     if (DAT_FILE_OBJECT_init(&d_obj, dat_fp, 48, FILE_DEFAULT) < 0) {
@@ -94,7 +94,12 @@ int main(void) {
 
     DAT_FILE_OBJECT_commit(&d_obj);
 
-    write(STDOUT_FILENO, (char*)"\n\n\n\n\n", 5);
+    if (write(STDOUT_FILENO, (char*)"\n", 1) != 1) {
+        perror("write");
+        DAT_FILE_OBJECT_deinit(&d_obj);
+        fclose_checked(dat_fp);
+        return -1;
+    }
     for (size_t i = 0; i < point_cnt; ++i) {
         if (DAT_FILE_read_entry(&d_obj, i, &entry_header, buffer) < 0) continue;
         printf("Entry%.4zu: [%.4f %.4f %.4f]\n",

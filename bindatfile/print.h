@@ -43,7 +43,7 @@ static inline void DAT_FILE_print_fileheader(DAT_FILE_HEADER *header_p) {
         "fileheader.timestamp", sizeof(header_p->timestamp)
     );
 
-    struct tm *t = localtime(&header_p->timestamp);
+    struct tm *t = localtime((time_t*)&header_p->timestamp);
     cur += snprintf(
         (char*)buffer + cur, sizeof(buffer) - cur,
         "%04d-%02d-%02d %02d:%02d:%02d\n\n",
@@ -54,7 +54,8 @@ static inline void DAT_FILE_print_fileheader(DAT_FILE_HEADER *header_p) {
         t->tm_min,
         t->tm_sec
     );
-    write(STDOUT_FILENO, (char*)buffer, cur);
+    int ret = write(STDOUT_FILENO, (char*)buffer, cur);
+    if (ret < 0) perror("write");
 }
 static inline void DAT_FILE_print_filefooter(DAT_FILE_FOOTER *footer_p) {
     if (!footer_p) return;
@@ -72,20 +73,24 @@ static inline void DAT_FILE_print_filefooter(DAT_FILE_FOOTER *footer_p) {
         "filefooter.magic", sizeof(footer_p->magic), magic_bytes[0],magic_bytes[1],magic_bytes[2],magic_bytes[3],magic_bytes[4],magic_bytes[5],magic_bytes[6],magic_bytes[7]
     );
 
-    write(STDOUT_FILENO, (char*)buffer, cur);
+    int ret = write(STDOUT_FILENO, (char*)buffer, cur);
+    if (ret < 0) perror("write");
 }
 static inline void DAT_FILE_print_offtable(uoff32_t *offtable, size32_t entrycnt) {
     if (!offtable) return;
     puts("index    offset");
     char line[32] = {0};
     off32_t len = 0;
+    int ret = 0;
     for (size32_t i = 0; i < entrycnt; ++i) {
         if (!offtable[i]) {
             len = snprintf((char*)line, sizeof(line), "%5u    (NULL)\n", i);
         } else {
             len = snprintf((char*)line, sizeof(line), "%5u    0x%.08x\n", i, offtable[i]);
         }
-        write(STDOUT_FILENO, (char*)line, len);
+        ret = write(STDOUT_FILENO, (char*)line, len);
+        if (ret < 0) perror("write");
     }
-    write(STDOUT_FILENO, (char*)"\n", 1);
+    ret = write(STDOUT_FILENO, (char*)"\n", 1);
+    if (ret < 0) perror("write");
 }

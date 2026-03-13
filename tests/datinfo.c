@@ -1,6 +1,6 @@
 #include <libc_chked.h>
-#include "bindatfile/bindatfile.h"
-#include "bindatfile/print.h"
+#include <bindatfile/bindatfile.h>
+#include <bindatfile/print.h>
 #include <sys/stat.h>
 #include <unistd.h>
 

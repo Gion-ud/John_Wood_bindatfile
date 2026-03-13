@@ -1,4 +1,0 @@
-all: mkidxfile
-
-mkidxfile: mkidxfile.c keyindex/keyindex.c hash_index/hash_index.c
-	cc -O2 -s -Iinclude -Ihash_index -Ikeyindex $^ -o $@ -Wall -Wextra -Werror

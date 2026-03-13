@@ -1,7 +1,7 @@
 #include <global.h>
 #include <libc_chked.h>
 #include <tlv/tlv.h>
-#include "hash_index.h"
+#include <hash_index/hash_index.h>
 #include <posix_io.h>
 
 const char *key_arr[] = {
@@ -98,11 +98,25 @@ int main() {
             printerrf("ht_obj.ht_ops->insert failed\n");
             continue;
         }
-        printf("key_hash=0x%.16llx;h_idx=%d;h_ret=%d\n", key_hash, (int)key_hash % ht_obj.ht_size, ret);
+        //printf("key_hash=0x%.16llx;h_idx=%d;h_ret=%d\n", key_hash, (int)key_hash % ht_obj.ht_size, ret);
     }
 
-    ret = HASH_INDEX_get_key_idx(&ht_obj, key_arr, "ntoskrnl.exe");
-    printf("%d\n", ret);
+    size_t key_len = 0;
+    char key_buffer[64] = {0};
+    while (LOOP_RUNNING) {
+        puts("Enter key:");
+        if (!fgets((char*)key_buffer, 64, stdin)) {
+            printerrf("fgets\n");
+            break;
+        }
+        key_len = strlen(key_buffer);
+
+        if (key_buffer[key_len - 1] == '\n') key_buffer[key_len-- - 1] = 0;
+        if (key_buffer[key_len - 1] == '\r') key_buffer[key_len-- - 1] = 0;
+        if (!key_buffer[0]) break;
+        ret = HASH_INDEX_get_key_idx(&ht_obj, key_arr, (char*)key_buffer);
+        printf("idx:%d\n", ret);
+    }
 
 
     HASH_INDEX_OBJECT_deinit(&ht_obj);
