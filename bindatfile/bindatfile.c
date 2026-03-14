@@ -251,7 +251,6 @@ bool DAT_FILE_OBJECT_commit(DAT_FILE_OBJECT *_this) {
         &_this->fileheader,
         entrycount,
         indextableoff,
-        _this->fileheader.datasectionoff,
         filefooteroff,
         time(NULL)
     );

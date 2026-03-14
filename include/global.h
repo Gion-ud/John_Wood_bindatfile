@@ -20,6 +20,9 @@
 #include <stdbool.h>
 #include <signal.h>
 
+#define IN_PARAM
+#define OUT_PARAM
+
 #include "global_intdef.h"
 
 #define printerrf(...) fprintf(stderr, __VA_ARGS__);fflush(stderr)

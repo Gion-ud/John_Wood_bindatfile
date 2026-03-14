@@ -3,7 +3,8 @@
 #include <typeflags.h>
 #include <global_intdef.h>
 
-#define MAGIC_LEN 8
+#define MAGIC_LEN       8
+#define PADDING_SIZE    4
 
 enum FileFlags {
     FILE_DEFAULT            = 0,
@@ -31,13 +32,12 @@ typedef struct _dat_fileheader {
     word_t      flags;              // 2
     size32_t    headersize;         // 4
     size32_t    footersize;         // 4
-    size32_t    entrycount;         // 4
+    word_t      entrycount;         // 4
 //  uoff32_t    indextableoff;      // 4
     uoff32_t    offtableoff;
     uoff32_t    datasectionoff;     // 4
     uoff32_t    footeroff;          // 4
     longlong_t  timestamp;          // 8
-    dword_t     reserved;           // 4
 } DAT_FILE_HEADER;
 
 typedef struct _eof_header {
@@ -53,12 +53,8 @@ typedef struct _dat_idx_entry {
 } DAT_INDEX_ENTRY;
 */
 
-
-typedef uoff32_t datoff_t;
-
 typedef struct _dat_entry_header {
     word_t      type;
-    word_t      flags;
     size32_t    len;
 } DAT_ENTRY_HEADER;
 //  byte_t      entry_payload[len];

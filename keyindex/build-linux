@@ -5,4 +5,4 @@ CFLAGS = -O2 -c -fPIC -Wall -Wextra -Werror
 BUILD = ../build
 
 keyindex.o: keyindex.c | $(BUILD)
-	$(CC) $(CFLAGS) $< -I../include -o $(BUILD)/$@
+	$(CC) $(CFLAGS) $< -I../include -I.. -o $(BUILD)/$@

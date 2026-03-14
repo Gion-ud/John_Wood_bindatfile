@@ -22,8 +22,8 @@ static inline void DAT_init_fileheader(DAT_FILE_HEADER *out_fileheader_p, dword_
     out_fileheader_p->headersize        = sizeof(DAT_FILE_HEADER);
     out_fileheader_p->footersize        = sizeof(DAT_FILE_FOOTER);
     out_fileheader_p->entrycount        = 0;                        // it will inc
-    out_fileheader_p->offtableoff       = datfile_datasectionoff;   // payload after datasection
-    out_fileheader_p->datasectionoff    = datfile_datasectionoff;   //
+    out_fileheader_p->offtableoff       = 0;   // payload after datasection
+    out_fileheader_p->datasectionoff    = (sizeof(DAT_FILE_HEADER) + PADDING_SIZE - 1) &~(PADDING_SIZE - 1);   //
     out_fileheader_p->footeroff         = datfile_datasectionoff;   // eofoff - sizeof(EOFHeader) 
     out_fileheader_p->timestamp         = 0;                        // only written when closing
 }
@@ -32,13 +32,11 @@ static inline void DAT_update_fileheader(
     DAT_FILE_HEADER    *fileheader_p,
     size32_t            entrycount,
     uoff32_t            offtableoff,
-    uoff32_t            datasectionoff,
     uoff32_t            footeroff,
     longlong_t          timestamp
 ) {
     fileheader_p->entrycount        = entrycount;       // it will inc
     fileheader_p->offtableoff       = offtableoff;
-    fileheader_p->datasectionoff    = datasectionoff;
     fileheader_p->footeroff         = footeroff;        // eofoff - sizeof(EOFHeader)
     fileheader_p->timestamp         = timestamp;
 }

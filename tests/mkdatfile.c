@@ -67,14 +67,12 @@ int main(void) {
 
     DAT_ENTRY_HEADER entry_header = {0};
 
-    entry_header.flags = 0;
     entry_header.len = sizeof(struct float3_packed);
     entry_header.type = TYPE_BLOB;
 
     for (size_t i = 0; i < point_cnt; ++i) {
         print_dbg_msg("Entry:%zu\n", i);
         entry_header.type = TYPE_STRUCT;
-        entry_header.flags = 0;
         entry_header.len = sizeof(struct float3_packed);
         if (DAT_FILE_write_entry(&d_obj, &entry_header, (byte_t*)&point_arr[i]) < 0)
             break;

@@ -44,14 +44,18 @@ INDEX_FILE_OBJECT_init_failed:
 static inline int INDEX_FILE_indextable_insert(
     INDEX_ENTRY    *indextable,
     ulong_t         idx,
-    qword_t         key_hash,
+    dword_t         key_hash,
     dword_t         key_len,
-    uoff32_t        key_off
+    uoff32_t        key_off,
+    word_t          flags,
+    dword_t         data_off
 ) {
     if (is_null(indextable)) return -1;
-    indextable[idx].key_hash = key_hash;
-    indextable[idx].key_len = key_len;
-    indextable[idx].key_off = key_off;
+    indextable[idx].key_hash    = key_hash;
+    indextable[idx].key_len     = key_len;
+    indextable[idx].key_off     = key_off;
+    indextable[idx].flags       = flags;
+    indextable[idx].data_off    = data_off;
     return (int)idx;
 }
 
@@ -59,7 +63,9 @@ int INDEX_FILE_write_entry(
     INDEX_FILE_OBJECT  *_this,
     const byte_t       *key_p,
     size32_t            key_len,
-    qword_t             key_hash
+    dword_t             key_hash,
+    word_t              flags,
+    uoff32_t            data_off
 ) {
     if (
         is_null(_this) ||
@@ -91,7 +97,9 @@ int INDEX_FILE_write_entry(
             idx,
             key_hash,
             key_len,
-            key_off
+            key_off,
+            flags,
+            data_off
         ) < 0
     ) {
         printerrf("Failed to insert indexentry\n");
@@ -116,9 +124,10 @@ int INDEX_FILE_delete_entry(INDEX_FILE_OBJECT *_this, ulong_t idx) {
 int INDEX_FILE_get_key(
     INDEX_FILE_OBJECT  *_this,
     ulong_t             idx,
-    LPBuffer           *out_key_p
+    byte_t             *out_key_p,
+    size32_t           *out_key_len_p
 ) {
-    if (is_null(_this) || is_null(out_key_p) || is_null(out_key_p->data))
+    if (is_null(_this) || is_null(out_key_p) || is_null(out_key_p) || is_null(out_key_len_p))
         return -1;
     if (idx > _this->entrycap) {
         printerrf("idx out of bound\n");
@@ -129,11 +138,11 @@ int INDEX_FILE_get_key(
         return -1;
     }
     uoff32_t key_off = _this->indextable[idx].key_off;
-    uoff32_t key_len = _this->indextable[idx].key_len;
+    *out_key_len_p = _this->indextable[idx].key_len;
     fseek(_this->fp, key_off, SEEK_SET);
     if (
         fread_checked(
-            out_key_p->data, 1, key_len, _this->fp
+            out_key_p, 1, *out_key_len_p, _this->fp
         ) < 0
     )
         return -1;

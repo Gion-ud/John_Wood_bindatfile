@@ -33,9 +33,8 @@ typedef struct _idx_fileheader {
     uoff32_t    stringtableoff; // 4
     uoff32_t    indextableoff;  // 4
     uoff32_t    footeroff;      // 4
-    size32_t    entrycount;     // 4
+    word_t      entrycount;     // 4
     longlong_t  timestamp;      // 8
-    dword_t     reserved;       // 4
 } INDEX_FILE_HEADER;
 
 typedef struct _idx_filefooter {
@@ -44,9 +43,12 @@ typedef struct _idx_filefooter {
 } INDEX_FILE_FOOTER;
 
 typedef struct _idx_entry {
+    dword_t     key_hash;
     size32_t    key_len;
     uoff32_t    key_off;
-    qword_t     key_hash;
+    uoff32_t    data_off;
+    word_t      flags;
+    word_t      reserved;
 } INDEX_ENTRY;
 
 
@@ -58,7 +60,7 @@ internal layout:
 [FileHeader]
 [Entries]
     [EntryHeader][payload]
-    ...
+    ...d
 [OffsetTable[]]
 [FileFooter]
 */

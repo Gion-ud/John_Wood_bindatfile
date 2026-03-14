@@ -1,6 +1,9 @@
 #pragma once
 
 #include "mem_types.h"
+#include <hash_index/hash_func.h>
+
+hash32_t (*hash)(const byte_t *key_p, size32_t key_len) = &fnv_1a_hash32;
 
 int INDEX_get_entrycount(FILE *fp);
 int INDEX_FILE_OBJECT_init(
@@ -13,14 +16,17 @@ int INDEX_FILE_write_entry(
     INDEX_FILE_OBJECT  *_this,
     const byte_t       *key_p,
     size32_t            key_len,
-    qword_t             key_hash
+    dword_t             key_hash,
+    word_t              flags,
+    uoff32_t            data_off
 );
 int INDEX_FILE_delete_entry(INDEX_FILE_OBJECT *_this, ulong_t idx);
 int INDEX_FILE_get_key(
     INDEX_FILE_OBJECT  *_this,
     ulong_t             idx,
-    LPBuffer           *out_key_p
+    byte_t             *out_key_p,
+    size32_t           *out_key_len_p
 );
-int INDEX_FILE_get_idx(INDEX_FILE_OBJECT *_this, LPBuffer *key_p);
+//int INDEX_FILE_get_idx(INDEX_FILE_OBJECT *_this, LPBuffer *key_p);
 bool INDEX_FILE_OBJECT_commit(INDEX_FILE_OBJECT *_this);
 void INDEX_FILE_OBJECT_deinit(INDEX_FILE_OBJECT *_this);
