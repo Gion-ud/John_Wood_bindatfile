@@ -1,3 +1,5 @@
+#pragma once
+
 #include <global.h>
 
 typedef ulonglong_t hash_t;

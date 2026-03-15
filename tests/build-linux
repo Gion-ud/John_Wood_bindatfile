@@ -7,7 +7,6 @@ INCLUDE = ../include
 BUILD = ../build
 BIN = ../bin
 
-
 mkdatfile: mkdatfile.c $(BUILD)/bindatfile.o | $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@ -lz
 
@@ -17,5 +16,8 @@ datinfo: datinfo.c $(BUILD)/bindatfile.o | $(BIN)
 testht: testht.c $(BUILD)/hash_index.o | $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@
 
-mkidxfile: mkidxfile.c $(BUILD)/keyindex.o | $(BIN)
+mkidxfile: mkidxfile.c $(BUILD)/keyindex.o $(BUILD)/hash_index.o | $(BIN)
+	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@
+
+kidxinfo: kidxinfo.c $(BUILD)/keyindex.o | $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@

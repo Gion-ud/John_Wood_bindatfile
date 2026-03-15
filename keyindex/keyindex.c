@@ -1,16 +1,5 @@
 #include "internal.h"
 
-int INDEX_get_entrycount(FILE *fp) {
-    if (is_null(fp)) return -1;
-    fseek(fp, offsetof(INDEX_FILE_HEADER, entrycount), SEEK_SET);
-    size32_t entrycount = 0;
-    if (
-        fread_checked(&entrycount, sizeof(size32_t), 1, fp) < 0
-    )
-        return -1;
-    return (int)entrycount;
-}
-
 void INDEX_FILE_OBJECT_deinit(INDEX_FILE_OBJECT *_this);
 int INDEX_FILE_OBJECT_init(
     INDEX_FILE_OBJECT  *_this,
@@ -39,6 +28,21 @@ int INDEX_FILE_OBJECT_init(
 INDEX_FILE_OBJECT_init_failed:
     INDEX_FILE_OBJECT_deinit(_this);
     return -1;
+}
+
+int INDEX_FILE_load_sections(INDEX_FILE_OBJECT *_this) {
+    if (is_null(_this) || is_null(_this->indextable) || is_null(_this->key_arr)) return -1;
+    fseek(_this->fp, 0, SEEK_SET);
+    if (fread_checked(&_this->fileheader, sizeof(INDEX_FILE_HEADER), 1, _this->fp) < 0) {
+        printerrf("failed to load fileheader\n");
+        return -1;
+    }
+    fseek(_this->fp, _this->fileheader.footeroff, SEEK_SET);
+    if (fread_checked(&_this->filefooter, sizeof(INDEX_FILE_FOOTER), 1, _this->fp) < 0) {
+        printerrf("failed to load filefooter\n");
+        return -1;
+    }
+    
 }
 
 static inline int INDEX_FILE_indextable_insert(
@@ -108,6 +112,7 @@ int INDEX_FILE_write_entry(
     _this->key_arr[idx].data = (void*)key_p; // This Does Not Copy
     _this->key_arr[idx].len = key_len;
     _this->idx_file_cur += (key_len + 1);
+    INDEX_update_fileheader(&_this->fileheader, idx + 1, _this->idx_file_cur, _this->idx_file_cur, 0);
     return (int)_this->fileheader.entrycount++;
 }
 
@@ -118,6 +123,8 @@ int INDEX_FILE_delete_entry(INDEX_FILE_OBJECT *_this, ulong_t idx) {
         return -1;
     }
     _this->indextable[idx].key_off = 0;
+    _this->indextable[idx].data_off = 0;
+    _this->indextable[idx].flags |= ENTRY_DELETED;
     return (int)idx;
 }
 
@@ -133,7 +140,7 @@ int INDEX_FILE_get_key(
         printerrf("idx out of bound\n");
         return -1;
     }
-    if (!_this->indextable[idx].key_off) {
+    if (!_this->indextable[idx].key_off || (_this->indextable[idx].flags | ENTRY_DELETED)) {
         printerrf("Entry[%u] is not valid\n", idx);
         return -1;
     }
@@ -165,8 +172,8 @@ int INDEX_FILE_get_idx(
 bool INDEX_FILE_OBJECT_commit(INDEX_FILE_OBJECT *_this) {
     if (is_null(_this)) return -1;
     size32_t entrycount = _this->fileheader.entrycount;
-    uoff32_t indextableoff = (_this->idx_file_cur + 0x0F) &~ 0x0F;
-    //printerrf("this.idx_file_cur=%u\n", indextableoff);
+    uoff32_t indextableoff = (_this->idx_file_cur + PADDING_ALIGN_SIZE - 1) &~ (PADDING_ALIGN_SIZE - 1);
+    printerrf("this.idx_file_cur=%u\n", _this->idx_file_cur);
 
     uoff32_t filefooteroff = indextableoff + _this->fileheader.entrycount * sizeof(INDEX_ENTRY);
 
@@ -193,14 +200,13 @@ bool INDEX_FILE_OBJECT_commit(INDEX_FILE_OBJECT *_this) {
     )
         return false;
 
-    INDEX_FILE_FOOTER filefooter = {0};
     //memcpy(&filefooter.magic, (byte_t*)EOF_MAGIC, sizeof(qword_t));
-    filefooter.magic = *(qword_t*)((byte_t*)EOF_MAGIC);
+    _this->filefooter.magic = *(qword_t*)((byte_t*)EOF_MAGIC);
     
     fseek(_this->fp, filefooteroff, SEEK_SET);
     if (
         fwrite_checked(
-            &filefooter, sizeof(INDEX_FILE_FOOTER), 1, _this->fp
+            &_this->filefooter, sizeof(INDEX_FILE_FOOTER), 1, _this->fp
         ) < 0
     )
         return false;

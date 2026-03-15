@@ -2,10 +2,21 @@
 
 #include "mem_types.h"
 #include <hash_index/hash_func.h>
+#include <libc_chked.h>
 
 hash32_t (*hash)(const byte_t *key_p, size32_t key_len) = &fnv_1a_hash32;
 
-int INDEX_get_entrycount(FILE *fp);
+static inline int INDEX_FILE_get_entrycount(FILE *fp) {
+    if (is_null(fp)) return -1;
+    fseek(fp, offsetof(INDEX_FILE_HEADER, entrycount), SEEK_SET);
+    word_t entrycount = 0;
+    if (
+        fread_checked(&entrycount, sizeof(word_t), 1, fp) < 0
+    )
+        return -1;
+    return (int)entrycount;
+}
+
 int INDEX_FILE_OBJECT_init(
     INDEX_FILE_OBJECT  *_this,
     FILE               *fp,

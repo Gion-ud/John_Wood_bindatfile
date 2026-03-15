@@ -8,9 +8,10 @@
 #include "internal_types.h"
 #include "mem_types.h"
 
+#define PADDING_ALIGN_SIZE 4
 
 
-static uoff32_t indexfile_stringtableoff = sizeof(INDEX_FILE_HEADER);
+static uoff32_t indexfile_stringtableoff = (sizeof(INDEX_FILE_HEADER) + PADDING_ALIGN_SIZE - 1) &~ (PADDING_ALIGN_SIZE - 1);
 
 static inline void INDEX_init_fileheader(INDEX_FILE_HEADER *out_fileheader_p, dword_t flags) {
     //memcpy(&out_fileheader_p->magic, (byte_t*)FILE_MAGIC, sizeof(qword_t));
@@ -21,8 +22,8 @@ static inline void INDEX_init_fileheader(INDEX_FILE_HEADER *out_fileheader_p, dw
     out_fileheader_p->headersize        = sizeof(INDEX_FILE_HEADER);
     out_fileheader_p->footersize        = sizeof(INDEX_FILE_FOOTER);
     out_fileheader_p->stringtableoff    = indexfile_stringtableoff; //
-    out_fileheader_p->indextableoff     = indexfile_stringtableoff; // payload after datasection
-    out_fileheader_p->footeroff         = indexfile_stringtableoff; // eofoff - sizeof(EOFHeader) 
+    out_fileheader_p->indextableoff     = 0;                        // payload after datasection
+    out_fileheader_p->footeroff         = 0;                        // eofoff - sizeof(EOFHeader) 
     out_fileheader_p->entrycount        = 0;                        // it will inc
     out_fileheader_p->timestamp         = 0;                        // only written when closing
 }

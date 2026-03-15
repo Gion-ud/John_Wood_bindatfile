@@ -12,11 +12,9 @@ enum FileFlags {
 };
 
 enum EntryFlags {
-    ENTRY_EMPTY         = 0,
-    ENTRY_VALID         = (1u << 0),
-    ENTRY_DELETED       = (1u << 1),
-    ENTRY_COMPRESSED    = (1u << 2),
-    ENTRY_ENCRYPTED     = (1u << 3),
+    ENTRY_DELETED       = (1u << 0),
+    ENTRY_COMPRESSED    = (1u << 1),
+    ENTRY_ENCRYPTED     = (1u << 2),
 };
 
 
