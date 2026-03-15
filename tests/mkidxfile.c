@@ -20,6 +20,22 @@ const char *key_arr[] = {
     "Hitsounds/soft/hitfinish",
     "Hitsounds/soft/hitnormal",
     "Hitsounds/soft/hitwhistle",
+    "snare drum",
+    "bass drum",
+    "rimshot",
+    "tom",
+    "clap",
+    "hi-hat",
+    "open hi-hat",
+    "close hi-hat",
+    "ride cymbal",
+    "ride bell",
+    "ride",
+    "crash cymbal",
+    "primary crash",
+    "secondary crash",
+    "china cymbal",
+    "tambourine"
 };
 const size_t key_arr_len = sizeof(key_arr) / sizeof(key_arr[0]);
 
@@ -28,9 +44,9 @@ int main() {
     FILE *fp = fopen_checked("index.dat", "wb+");
     if (!fp) return errno;
     INDEX_FILE_OBJECT i_obj = {0};
-    INDEX_FILE_OBJECT_init(&i_obj, fp, 32, 0);
+    INDEX_FILE_OBJECT_init(&i_obj, fp, 64, 0);
     HASH_INDEX_OBJECT ht_obj = {0};
-    HASH_INDEX_OBJECT_init(&ht_obj, 32, 16);
+    HASH_INDEX_OBJECT_init(&ht_obj, 64, 16);
 
     int ret = 0;
     hash_t key_hash = 0;
@@ -38,7 +54,7 @@ int main() {
     for (size_t i = 0; i < key_arr_len; ++i) {
         key_len = strlen(key_arr[i]);
         key_hash = hash((byte_t*)key_arr[i], key_len);
-        ret = INDEX_FILE_write_entry(&i_obj, (byte_t*)key_arr[i], key_len, key_hash, 0, 0);
+        ret = INDEX_FILE_write_entry(&i_obj, (byte_t*)key_arr[i], key_len, key_hash, 0, 0xffffffff);
         if (ret < 0) {
             printerrf("INDEX_FILE_write_entry failed\n");
             continue;
@@ -52,7 +68,7 @@ int main() {
     }
     INDEX_FILE_OBJECT_commit(&i_obj);
 
-    
+
 
     HASH_INDEX_OBJECT_deinit(&ht_obj);
     INDEX_FILE_OBJECT_deinit(&i_obj);
