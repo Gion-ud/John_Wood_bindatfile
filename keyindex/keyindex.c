@@ -14,11 +14,6 @@ int INDEX_FILE_OBJECT_init(
     );
     if (!_this->indextable) goto INDEX_FILE_OBJECT_init_failed;
     memset(_this->indextable, 0, entrycap * sizeof(INDEX_ENTRY));
-    _this->key_arr = (LPBuffer*)malloc_checked(
-        entrycap * sizeof(LPBuffer)
-    );
-    if (!_this->key_arr) goto INDEX_FILE_OBJECT_init_failed;
-    memset(_this->key_arr, 0, entrycap * sizeof(LPBuffer));
 
     _this->idx_file_cur = indexfile_stringtableoff;
     _this->entrycap = entrycap;
@@ -31,7 +26,7 @@ INDEX_FILE_OBJECT_init_failed:
 }
 
 int INDEX_FILE_load_sections(INDEX_FILE_OBJECT *_this) {
-    if (is_null(_this) || is_null(_this->indextable) || is_null(_this->key_arr)) return -1;
+    if (is_null(_this) || is_null(_this->indextable)) return -1;
     fseek(_this->fp, 0, SEEK_SET);
     if (fread_checked(&_this->fileheader, sizeof(INDEX_FILE_HEADER), 1, _this->fp) < 0) {
         printerrf("failed to load fileheader\n");
@@ -42,7 +37,37 @@ int INDEX_FILE_load_sections(INDEX_FILE_OBJECT *_this) {
         printerrf("failed to load filefooter\n");
         return -1;
     }
-    
+    fseek(_this->fp, _this->fileheader.indextableoff, SEEK_SET);
+    if (fread_checked(_this->indextable, sizeof(INDEX_ENTRY), _this->fileheader.entrycount, _this->fp) < 0) {
+        printerrf("failed to load indextable\n");
+        return -1;
+    }
+    return 0;
+}
+
+int INDEX_FILE_load_keystringtable(INDEX_FILE_OBJECT *_this, byte_t *stringtable_buf) {
+    if (is_null(_this) || is_null(_this->indextable) || is_null(stringtable_buf)) return -1;
+    fseek(_this->fp, _this->fileheader.stringtableoff, SEEK_SET);
+    _this->key_stringtable_buf.len = _this->fileheader.indextableoff - _this->fileheader.stringtableoff;
+    _this->key_stringtable_buf.data = stringtable_buf;
+    if (fread_checked(stringtable_buf, 1, _this->key_stringtable_buf.len, _this->fp) < 0) {
+        printerrf("failed to load keys from stringtable\n");
+        return -1;
+    }
+    return (int)_this->key_stringtable_buf.len;
+}
+bool INDEX_FILE_validate_integrity(INDEX_FILE_OBJECT *_this) {
+    if (is_null(_this)) return -1;
+    if (memcmp(&_this->fileheader.magic, (byte_t*)FILE_MAGIC, sizeof(_this->fileheader.magic)) != 0) {
+        printerrf("invalid file magic\n");
+        return false;
+    }
+    if (memcmp(&_this->filefooter.magic, (byte_t*)EOF_MAGIC, sizeof(_this->filefooter.magic)) != 0) {
+        printerrf("invalid EOF magic\n");
+        return false;
+    }
+
+    return true;
 }
 
 static inline int INDEX_FILE_indextable_insert(
@@ -109,10 +134,9 @@ int INDEX_FILE_write_entry(
         printerrf("Failed to insert indexentry\n");
         return -1;
     }
-    _this->key_arr[idx].data = (void*)key_p; // This Does Not Copy
-    _this->key_arr[idx].len = key_len;
+
     _this->idx_file_cur += (key_len + 1);
-    INDEX_update_fileheader(&_this->fileheader, idx + 1, _this->idx_file_cur, _this->idx_file_cur, 0);
+    INDEX_update_fileheader(&_this->fileheader, idx, _this->idx_file_cur, _this->idx_file_cur, 0);
     return (int)_this->fileheader.entrycount++;
 }
 
@@ -128,7 +152,7 @@ int INDEX_FILE_delete_entry(INDEX_FILE_OBJECT *_this, ulong_t idx) {
     return (int)idx;
 }
 
-int INDEX_FILE_get_key(
+int INDEX_FILE_load_key(
     INDEX_FILE_OBJECT  *_this,
     ulong_t             idx,
     byte_t             *out_key_p,
@@ -217,9 +241,6 @@ bool INDEX_FILE_OBJECT_commit(INDEX_FILE_OBJECT *_this) {
 void INDEX_FILE_OBJECT_deinit(INDEX_FILE_OBJECT *_this) {
     if (_this->indextable) {
         _this->indextable = free_checked(_this->indextable);
-    }
-    if (_this->key_arr) {
-        _this->key_arr = free_checked(_this->key_arr);
     }
     memset(_this, 0, sizeof(INDEX_FILE_OBJECT));
 }

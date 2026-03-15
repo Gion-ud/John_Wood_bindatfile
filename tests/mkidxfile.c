@@ -43,6 +43,7 @@ int main() {
             printerrf("INDEX_FILE_write_entry failed\n");
             continue;
         }
+        printerrf("i=%zu;ret=%d\n", i, ret);
         ret = HASH_INDEX_insert(&ht_obj, key_hash, i);
         if (ret < 0) {
             printerrf("HASH_INDEX_insert failed\n");
@@ -51,6 +52,7 @@ int main() {
     }
     INDEX_FILE_OBJECT_commit(&i_obj);
 
+    
 
     HASH_INDEX_OBJECT_deinit(&ht_obj);
     INDEX_FILE_OBJECT_deinit(&i_obj);

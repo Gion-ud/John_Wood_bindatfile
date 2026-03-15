@@ -17,12 +17,15 @@ static inline int INDEX_FILE_get_entrycount(FILE *fp) {
     return (int)entrycount;
 }
 
+
 int INDEX_FILE_OBJECT_init(
     INDEX_FILE_OBJECT  *_this,
     FILE               *fp,
     size32_t            entrycap, 
     ulong_t             flags
 );
+int INDEX_FILE_load_sections(INDEX_FILE_OBJECT *_this);
+bool INDEX_FILE_validate_integrity(INDEX_FILE_OBJECT *_this);
 int INDEX_FILE_write_entry(
     INDEX_FILE_OBJECT  *_this,
     const byte_t       *key_p,
@@ -32,7 +35,7 @@ int INDEX_FILE_write_entry(
     uoff32_t            data_off
 );
 int INDEX_FILE_delete_entry(INDEX_FILE_OBJECT *_this, ulong_t idx);
-int INDEX_FILE_get_key(
+int INDEX_FILE_load_key(
     INDEX_FILE_OBJECT  *_this,
     ulong_t             idx,
     byte_t             *out_key_p,
@@ -41,3 +44,16 @@ int INDEX_FILE_get_key(
 //int INDEX_FILE_get_idx(INDEX_FILE_OBJECT *_this, LPBuffer *key_p);
 bool INDEX_FILE_OBJECT_commit(INDEX_FILE_OBJECT *_this);
 void INDEX_FILE_OBJECT_deinit(INDEX_FILE_OBJECT *_this);
+
+int INDEX_FILE_load_keystringtable(INDEX_FILE_OBJECT *_this, byte_t *stringtable_buf);
+static inline byte_t *INDEX_FILE_stringtable_get_key_rdonly(INDEX_FILE_OBJECT *_this, word_t idx, size32_t *out_key_len_p) {
+    if (
+        is_null(_this) ||
+        is_null(_this->indextable) ||
+        is_null(_this->key_stringtable_buf.data) ||
+        is_null(out_key_len_p)
+    )
+        return NULL;
+    *out_key_len_p = _this->indextable[idx].key_len;
+    return _this->key_stringtable_buf.data + _this->indextable[idx].key_off - _this->fileheader.stringtableoff;
+}
