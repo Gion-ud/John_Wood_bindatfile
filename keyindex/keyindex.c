@@ -73,6 +73,7 @@ bool INDEX_FILE_validate_integrity(INDEX_FILE_OBJECT *_this) {
     );
     if (crc != _this->filefooter.crc32) {
         printerrf("crc32 mismatch\n");
+        return false;
     }
 
     return true;

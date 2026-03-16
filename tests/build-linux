@@ -7,6 +7,9 @@ INCLUDE = ../include
 BUILD = ../build
 BIN = ../bin
 
+obj:
+	cd .. && make -f build-linux.mk && cd tests
+
 mkdatfile: mkdatfile.c $(BUILD)/bindatfile.o | $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@ -lz
 

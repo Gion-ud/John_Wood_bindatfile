@@ -3,6 +3,7 @@
 #include <posix_io.h>
 #include <libc_chked.h>
 #include <keyindex/print.h>
+#include <compute_file_crc32.h>
 
 byte_t buffer[BUFFER_SIZE] = {0};
 
