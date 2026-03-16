@@ -22,6 +22,7 @@ int main(void) {
         printerrf("INDEX_FILE_load_sections failed\n");
         return -1;
     }
+    if (!INDEX_FILE_validate_integrity(&i_obj)) return -1;
 
     printf("<fileheader at offset 0x%.8x>\n", 0);
     INDEX_FILE_print_fileheader(&i_obj.fileheader);

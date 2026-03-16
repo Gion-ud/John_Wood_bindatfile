@@ -7,6 +7,7 @@
 #include "libc_chked.h"
 #include "internal_types.h"
 #include "mem_types.h"
+#include <compute_file_crc32.h>
 
 
 

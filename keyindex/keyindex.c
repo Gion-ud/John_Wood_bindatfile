@@ -57,14 +57,22 @@ int INDEX_FILE_load_keystringtable(INDEX_FILE_OBJECT *_this, byte_t *stringtable
     return (int)_this->key_stringtable_buf.len;
 }
 bool INDEX_FILE_validate_integrity(INDEX_FILE_OBJECT *_this) {
-    if (is_null(_this)) return -1;
-    if (memcmp(&_this->fileheader.magic, (byte_t*)FILE_MAGIC, sizeof(_this->fileheader.magic)) != 0) {
+    if (is_null(_this)) return false;
+    if (_this->fileheader.magic != *(qword_t*)(byte_t*)FILE_MAGIC) {
         printerrf("invalid file magic\n");
         return false;
     }
-    if (memcmp(&_this->filefooter.magic, (byte_t*)EOF_MAGIC, sizeof(_this->filefooter.magic)) != 0) {
+    if (_this->filefooter.magic != *(qword_t*)(byte_t*)EOF_MAGIC) {
         printerrf("invalid EOF magic\n");
+        printerrf("_this->filefooter.magic: 0x%.16llx\n", _this->filefooter.magic);
+        printerrf("EOF_MAGIC: 0x%.16llx\n", *(qword_t*)(byte_t*)EOF_MAGIC);
         return false;
+    }
+    ulong_t crc = compute_file_section_crc32(
+        _this->fp, 0, _this->fileheader.footeroff
+    );
+    if (crc != _this->filefooter.crc32) {
+        printerrf("crc32 mismatch\n");
     }
 
     return true;
@@ -192,7 +200,6 @@ int INDEX_FILE_get_idx(
 }
 */
 
-
 bool INDEX_FILE_OBJECT_commit(INDEX_FILE_OBJECT *_this) {
     if (is_null(_this)) return -1;
     size32_t entrycount = _this->fileheader.entrycount;
@@ -226,7 +233,7 @@ bool INDEX_FILE_OBJECT_commit(INDEX_FILE_OBJECT *_this) {
 
     //memcpy(&filefooter.magic, (byte_t*)EOF_MAGIC, sizeof(qword_t));
     _this->filefooter.magic = *(qword_t*)((byte_t*)EOF_MAGIC);
-    
+    _this->filefooter.crc32 = compute_file_section_crc32(_this->fp , 0, filefooteroff);
     fseek(_this->fp, filefooteroff, SEEK_SET);
     if (
         fwrite_checked(

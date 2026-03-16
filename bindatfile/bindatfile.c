@@ -55,31 +55,6 @@ bool DAT_FILE_load_sections(DAT_FILE_OBJECT *_this) {
     return true;
 }
 
-ulong_t DAT_FILE_compute_crc32(
-    FILE       *this_file_p,
-    uoff32_t    src_off,
-    uoff32_t    dest_off
-) {
-    if (is_null(this_file_p)) return 0;
-    ulong_t f_crc32 = (ulong_t)crc32(0L, Z_NULL, 0);
-    byte_t buffer[BUFFER_SIZE] = {0};
-    size_t n = 0;
-    fseek(this_file_p, src_off, SEEK_SET);
-    for (uoff32_t i = 0; i < dest_off / BUFFER_SIZE; ++i) {
-        n = fread(buffer, 1, BUFFER_SIZE, this_file_p);
-        if (!n) break;
-        f_crc32 = crc32(f_crc32, (byte_t*)buffer, n);
-    }
-    size_t rem = dest_off % BUFFER_SIZE;
-    if (rem) {
-        n = fread(buffer, 1, rem, this_file_p);
-        if (n) {
-            f_crc32 = crc32(f_crc32, (byte_t*)buffer, n);
-        }
-    }
-    return f_crc32;
-}
-
 bool DAT_FILE_validate_integrity(
     DAT_FILE_HEADER    *this_fileheader,
     DAT_FILE_FOOTER    *this_filefooter,
@@ -111,7 +86,7 @@ bool DAT_FILE_validate_integrity(
     }
 
 
-    ulong_t crc = DAT_FILE_compute_crc32(
+    ulong_t crc = compute_file_section_crc32(
         this_file_p, 0, this_fileheader->footeroff
     );
     if (this_filefooter->crc32 != crc) {
@@ -264,7 +239,7 @@ bool DAT_FILE_OBJECT_commit(DAT_FILE_OBJECT *_this) {
 
     //memcpy(&filefooter.magic, (byte_t*)EOF_MAGIC, sizeof(qword_t));
     _this->filefooter.magic = *(qword_t*)((byte_t*)EOF_MAGIC);
-    _this->filefooter.crc32 = DAT_FILE_compute_crc32(_this->fp, 0, _this->fileheader.footeroff);
+    _this->filefooter.crc32 = compute_file_section_crc32(_this->fp, 0, _this->fileheader.footeroff);
 
     fseek(_this->fp, filefooteroff, SEEK_SET);
     if (

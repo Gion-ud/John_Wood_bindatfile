@@ -1,4 +1,4 @@
-#all: mkdatfile datinfo testht
+all: mkdatfile datinfo testht mkidxfile kidxinfo
 
 CC = cc
 CFLAGS = -O2 -Wall -Wextra -Werror
@@ -17,7 +17,7 @@ testht: testht.c $(BUILD)/hash_index.o | $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@
 
 mkidxfile: mkidxfile.c $(BUILD)/keyindex.o $(BUILD)/hash_index.o | $(BIN)
-	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@
+	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@ -lz
 
 kidxinfo: kidxinfo.c $(BUILD)/keyindex.o | $(BIN)
-	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@
+	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@ -lz

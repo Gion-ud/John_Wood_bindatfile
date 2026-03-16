@@ -55,7 +55,7 @@ __attribute__((packed)) struct array_header {
 
 int main(void) {
     DAT_FILE_OBJECT d_obj = {0};
-    FILE *dat_fp = fopen_checked("output/data.bin", "wb+");
+    FILE *dat_fp = fopen_checked("data.bin", "wb+");
     if (!dat_fp) return errno;
 
     if (DAT_FILE_OBJECT_init(&d_obj, dat_fp, 48, FILE_DEFAULT) < 0) {
