@@ -43,13 +43,18 @@ enum TypeFlagAliasesAsm {
 };
 
 enum DerivedTypeFlags {
-    TYPE_ARRAY      = (0x01 << 8),
-    TYPE_STRUCT     = 0x31,
-    TYPE_UNION      = 0x32,
+    TYPE_ARRAY  = (0x01 << 8),
+    TYPE_MATRIX = (0x02 << 8),
+    TYPE_TENSOR = (0x03 << 8),
+
+    TYPE_ARRAY_PACKED   = 0x31,
+    TYPE_STRUCT_PACKED  = 0x32,
+    TYPE_MATRIX_PACKED  = 0x34,
+    TYPE_TENSOR_PACKED  = 0x35,
 };
 
 
-#define TFLAG_LOB_RSVD_MAX TYPE_UNION
+#define TFLAG_LOB_RSVD_MAX TYPE_FLOAT128
 #define TFLAG_HIB_RSVD_MAX TYPE_ARRAY
 
 static inline int typeflag_sizeof(byte_t flags) {

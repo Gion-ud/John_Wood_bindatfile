@@ -32,7 +32,7 @@ typedef struct _dat_fileheader {
     word_t      flags;              // 2
     size32_t    headersize;         // 4
     size32_t    footersize;         // 4
-    word_t      entrycount;         // 4
+    word_t      entrycount;         // 2
 //  uoff32_t    indextableoff;      // 4
     uoff32_t    offtableoff;
     uoff32_t    datasectionoff;     // 4

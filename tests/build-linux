@@ -7,6 +7,9 @@ INCLUDE = ../include
 BUILD = ../build
 BIN = ../bin
 
+add-bin-to-path:
+	cd .. && export PATH="$$PATH:$$(pwd)/bin" && cd tests
+
 obj:
 	cd .. && make -f build-linux.mk && cd tests
 
@@ -21,6 +24,10 @@ testht: testht.c $(BUILD)/hash_index.o | $(BIN)
 
 mkidxfile: mkidxfile.c $(BUILD)/keyindex.o $(BUILD)/hash_index.o | $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@ -lz
+
+mkschema: mkschema.c $(BUILD)/bindatfile.o | $(BIN)
+	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@ -lz
+
 
 kidxinfo: kidxinfo.c $(BUILD)/keyindex.o | $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@ -lz

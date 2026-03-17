@@ -42,14 +42,17 @@ int main(int argc, char *argv[]) {
     }
     if (DAT_FILE_OBJECT_init(&d_obj, fp, entrycnt, FILE_DEFAULT) < 0) {
         printerrf("DAT_FILE_OBJECT_init failed\n");
+        DAT_FILE_OBJECT_deinit(&d_obj);
         return -1;
     }
     if (!DAT_FILE_load_sections(&d_obj)) {
         printerrf("DAT_FILE_load_sections failed\n");
+        DAT_FILE_OBJECT_deinit(&d_obj);
         return -1;
     }
     if (!DAT_FILE_validate_integrity(&d_obj.fileheader, &d_obj.filefooter, d_obj.fp)) {
         printerrf("DAT_FILE_validate_integrity failed: crc mismatch\n");
+        DAT_FILE_OBJECT_deinit(&d_obj);
         return -1;
     }
 
