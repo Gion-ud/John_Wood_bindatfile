@@ -1,4 +1,4 @@
-all: mkdatfile datinfo testht mkidxfile kidxinfo
+all: mkdatfile rddatfile datinfo testht mkidxfile kidxinfo
 
 CC = cc
 CFLAGS = -O2 -Wall -Wextra -Werror
@@ -16,6 +16,9 @@ obj:
 mkdatfile: mkdatfile.c $(BUILD)/bindatfile.o | $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@ -lz
 
+rddatfile: rddatfile.c $(BUILD)/bindatfile.o | $(BIN)
+	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@ -lz
+
 datinfo: datinfo.c $(BUILD)/bindatfile.o | $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@ -lz
 
@@ -26,6 +29,9 @@ mkidxfile: mkidxfile.c $(BUILD)/keyindex.o $(BUILD)/hash_index.o | $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@ -lz
 
 mkschema: mkschema.c $(BUILD)/bindatfile.o | $(BIN)
+	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@ -lz
+
+prschema: prschema.c $(BUILD)/bindatfile.o | $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@ -lz
 
 

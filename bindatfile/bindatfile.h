@@ -17,11 +17,16 @@ bool DAT_FILE_validate_integrity(
 );
 
 
-int DAT_FILE_read_entry(
+int DAT_FILE_read_entry_header(
     DAT_FILE_OBJECT    *_this,
     ulong_t             idx,
-    DAT_ENTRY_HEADER   *entry_header_p,
-    byte_t             *entry_data
+    DAT_ENTRY_HEADER   *out_entry_header_p
+);
+int DAT_FILE_read_entry_data(
+    DAT_FILE_OBJECT    *_this,
+    ulong_t             idx,
+    size32_t            entry_len,
+    byte_t             *out_entry_data_buf
 );
 int DAT_FILE_write_entry(
     DAT_FILE_OBJECT    *_this,
@@ -42,7 +47,7 @@ static inline int DAT_get_datfile_entrycount(FILE *fp) {
     fseek(fp, offsetof(DAT_FILE_HEADER, entrycount), SEEK_SET);
     size32_t entrycount = 0;
     if (
-        fread_checked(&entrycount, sizeof(size32_t), 1, fp) < 0
+        fread_checked(&entrycount, sizeof((*(DAT_FILE_HEADER*)0).entrycount), 1, fp) < 0
     )
         return -1;
     return (int)entrycount;

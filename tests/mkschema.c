@@ -10,19 +10,14 @@ static off32_t buffer_cur = 0;
 //static off32_t buffer_end = BUFFER_SIZE;
 
 int main(void) {
-    DAT_FILE_OBJECT d_obj = {0};
     FILE *dat_fp = fopen_checked("schema.dat", "wb+");
     if (!dat_fp) return errno;
 
-    if (DAT_FILE_OBJECT_init(&d_obj, dat_fp, 1, FILE_DEFAULT) < 0) {
-        printerrf("DAT_FILE_OBJECT_init failed\n");
-        return -1;
-    }
-
     byte_t *p = (byte_t*)buffer;
-    struct packed_struct_header *hdr_p = (struct packed_struct_header*)p;
-    buffer_cur += sizeof(struct packed_struct_header);
-    hdr_p->field_count = 3;
+
+    size32_t field_count = 3;
+    memcpy(p, &field_count, sizeof(size32_t));
+    buffer_cur += sizeof(size32_t);
 
     struct packed_struct_field_header field_hdr_arr[] = {
         {
@@ -59,19 +54,15 @@ int main(void) {
 
     field_name = "gms_mass_after";
     field_name_len = strlen(field_name);
-    memcpy(p + buffer_cur, (char*)field_name, field_name_len + 1);
+    memcpy(p + buffer_cur, (char*)field_name, field_name_len);
     (p + buffer_cur)[field_name_len] = '\0';
     buffer_cur += (field_name_len + 1);
 
-    DAT_ENTRY_HEADER entry_header = {0};
-    entry_header.type = TYPE_BLOB;
-    entry_header.len = buffer_cur;
+    if (write(fileno(dat_fp), p, buffer_cur) < 0) {
+        perror("write");
+        return -1;
+    }
 
-    if (DAT_FILE_write_entry(&d_obj, &entry_header, p) < 0) return -1;
-
-
-    DAT_FILE_OBJECT_commit(&d_obj);
-    DAT_FILE_OBJECT_deinit(&d_obj);
     fclose_checked(dat_fp);
     return 0;
 }

@@ -166,17 +166,12 @@ int DAT_FILE_delete_entry(DAT_FILE_OBJECT *_this, ulong_t idx) {
     return (int)idx;
 }
 
-int DAT_FILE_read_entry(
+int DAT_FILE_read_entry_header(
     DAT_FILE_OBJECT    *_this,
     ulong_t             idx,
-    DAT_ENTRY_HEADER   *entry_header_p,
-    byte_t             *entry_data
+    DAT_ENTRY_HEADER   *out_entry_header_p
 ) {
-    if (
-        is_null(_this) ||
-        is_null(entry_header_p) ||
-        is_null(entry_data)
-    )
+    if (is_null(_this) || is_null(out_entry_header_p))
         return -1;
 
     if (idx > _this->entrycap) {
@@ -191,14 +186,39 @@ int DAT_FILE_read_entry(
     fseek(_this->fp, entryoff, SEEK_SET);
     if (
         fread_checked(
-            entry_header_p, sizeof(DAT_ENTRY_HEADER), 1, _this->fp
+            out_entry_header_p, sizeof(DAT_ENTRY_HEADER), 1, _this->fp
         ) < 0
     )
         return -1;
 
+    return (int)idx;
+}
+
+int DAT_FILE_read_entry_data(
+    DAT_FILE_OBJECT    *_this,
+    ulong_t             idx,
+    size32_t            entry_len,
+    byte_t             *out_entry_data_buf
+) {
+    if (
+        is_null(_this) ||
+        is_null(out_entry_data_buf)
+    )
+        return -1;
+
+    if (idx > _this->entrycap) {
+        printerrf("idx out of bound\n");
+        return -1;
+    }
+    if (!_this->offtable[idx]) {
+        printerrf("Entry[%u] is not valid\n", idx);
+        return -1;
+    }
+    uoff32_t entryoff = _this->offtable[idx];
+    fseek(_this->fp, entryoff + sizeof(DAT_ENTRY_HEADER), SEEK_SET);
     if (
         fread_checked(
-            entry_data, 1, entry_header_p->len, _this->fp
+            out_entry_data_buf, 1, entry_len, _this->fp
         ) < 0
     )
         return -1;
@@ -210,7 +230,7 @@ int DAT_FILE_read_entry(
 bool DAT_FILE_OBJECT_commit(DAT_FILE_OBJECT *_this) {
     if (is_null(_this)) return -1;
     size32_t entrycount = _this->fileheader.entrycount;
-    uoff32_t indextableoff = (_this->dat_file_cur + 3) &~3;
+    uoff32_t indextableoff = (_this->dat_file_cur + PADDING_SIZE - 1) &~ (PADDING_SIZE - 1);
     //printerrf("this.dat_file_cur=%u\n", indextableoff);
     uoff32_t filefooteroff = indextableoff + entrycount * sizeof(uoff32_t);
 

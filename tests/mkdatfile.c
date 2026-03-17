@@ -5,7 +5,7 @@
 #include "bindatfile/print.h"
 
 #include "schema.h"
-static byte_t buffer[BUFFER_SIZE] = {0};
+//static byte_t buffer[BUFFER_SIZE] = {0};
 
 struct data_entry entry_arr[] = {
     {
@@ -59,11 +59,6 @@ int main(void) {
             break;
     }
 
-
-
-
-
-
     /*
     DAT_FILE_delete_entry(&d_obj, 0);
     DAT_FILE_delete_entry(&d_obj, 1);
@@ -75,24 +70,6 @@ int main(void) {
     */
 
     DAT_FILE_OBJECT_commit(&d_obj);
-
-
-    putchar('\n');
-    struct data_entry *entry = NULL;
-    for (size_t i = 0; i < entry_arr_len; ++i) {
-        if (DAT_FILE_read_entry(&d_obj, i, &entry_header, buffer) < 0) continue;
-        entry = (struct data_entry *)(byte_t*)buffer;
-        printf("Entry%.4zu: %4f, [%.4f %.4f %.4f], [%.4f %.4f %.4f]\n",
-            i,
-            entry->salt_conc,
-            entry->gms_mass_before[0],
-            entry->gms_mass_before[1],
-            entry->gms_mass_before[2],
-            entry->gms_mass_after[0],
-            entry->gms_mass_after[1],
-            entry->gms_mass_after[2]
-        );
-    }
 
     DAT_FILE_OBJECT_deinit(&d_obj);
     fclose_checked(dat_fp);
