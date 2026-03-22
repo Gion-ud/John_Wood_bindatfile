@@ -27,3 +27,10 @@ static inline ulong_t compute_file_section_crc32(
     }
     return f_crc32;
 }
+
+static inline ulong_t compute_mem_crc32(void *buf, ulong_t buf_len) {
+    if (is_null(buf)) return 0;
+    ulong_t ulcrc32 = (ulong_t)crc32(0L, Z_NULL, 0);
+    ulcrc32 = crc32(ulcrc32, buf, buf_len);
+    return ulcrc32;
+}

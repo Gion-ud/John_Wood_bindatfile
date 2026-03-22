@@ -1,3 +1,5 @@
+#pragma once
+
 #include <global_intdef.h>
 #include <typeflags.h>
 

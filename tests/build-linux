@@ -37,3 +37,6 @@ prschema: prschema.c $(BUILD)/bindatfile.o | $(BIN)
 
 kidxinfo: kidxinfo.c $(BUILD)/keyindex.o | $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@ -lz
+
+serarr: serarr.c | $(BIN)
+	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INCLUDE) -I.. $^ -o $(BIN)/$@
