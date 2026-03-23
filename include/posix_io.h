@@ -6,7 +6,7 @@
 #include <unistd.h>
 //#include <dirent.h>
 #endif
-#include <global.h>
+#include "global_intdef.h"
 
 static inline ssize_t read_full(int fd, void *buf, size_t buf_len) {
     ssize_t n_read_total = 0;
@@ -19,7 +19,7 @@ static inline ssize_t read_full(int fd, void *buf, size_t buf_len) {
             perror("read");
             return -1;
         } else if (!ret) {
-            printerrf("EOF reached");
+            printerrf("EOF reached\n");
             break;
         }
         n_read_total += ret;

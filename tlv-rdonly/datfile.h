@@ -18,10 +18,11 @@ enum FileFlags {
 };
 
 enum EntryFlags {
-    ENTRY_DEFAULT       = 0,
-    ENTRY_DELETED       = (1u << 0),
-    ENTRY_COMPRESSED    = (1u << 1),
-    ENTRY_ENCRYPTED     = (1u << 2),
+    ENTRY_EMPTY         = 0,
+    ENTRY_OCCUPIED      = (1u << 0),
+    ENTRY_DELETED       = (1u << 1),
+    ENTRY_COMPRESSED    = (1u << 2),
+    ENTRY_ENCRYPTED     = (1u << 3),
 };
 
 typedef struct _dat_file_header {
@@ -47,15 +48,27 @@ typedef struct _dat_idx_entry {
 
 typedef struct _dat_file_footer {
     ulong_t     crc32;  // 4
-    dword_t     magic;  // 8
+    dword_t     magic;  // 4
 } __attribute__((packed)) DAT_FILE_FOOTER;
 
+#define arr_elem_num(arr) (sizeof(arr) / sizeof(arr[0]))
 
 struct mem_buffer {
     void       *mem;
     uoff32_t    mem_cur;
     uoff32_t    mem_end;
 };
+
+off32_t mem_buffer_copy(
+    struct mem_buffer  *buf_p,
+    void               *src,
+    size32_t            src_len
+) {
+    if (is_null(buf_p) || is_null(src)) return -1;
+    memcpy(buf_p->mem + buf_p->mem_cur, src, src_len);
+    buf_p->mem_cur += src_len;
+    return buf_p->mem_cur;
+}
 
 typedef struct _dat_file_object {
     int                 fd;
@@ -77,13 +90,20 @@ static inline uoff32_t get_indextableoff() {
 static inline uoff32_t get_datasectionoff(word_t entrycount) {
     return get_indextableoff() + PAD_OFF_ALIGN(entrycount * sizeof(DAT_INDEX_ENTRY), PAD_SIZE);
 }
-static inline uoff32_t get_footeroff(uoff32_t buf_end_cur) {
-    return PAD_OFF_ALIGN(buf_end_cur, PAD_SIZE);
+static inline uoff32_t get_footeroff(
+    word_t      entrycount,
+    uoff32_t    datasection_len
+) {
+    return PAD_OFF_ALIGN(
+        get_indextableoff() +
+        PAD_OFF_ALIGN(entrycount * sizeof(DAT_INDEX_ENTRY), PAD_SIZE)
+        + datasection_len,
+        PAD_SIZE
+    );
 }
 
-static inline uoff32_t get_filesize(uoff32_t buf_end_cur) {
-    return
-        get_footeroff(buf_end_cur) + sizeof(DAT_FILE_FOOTER);
+static inline uoff32_t get_filesize(uoff32_t footeroff) {
+    return footeroff + sizeof(DAT_FILE_FOOTER);
 }
 
 #define FILEHEADER_PTR(base_addr) \
@@ -95,15 +115,14 @@ static inline uoff32_t get_filesize(uoff32_t buf_end_cur) {
 #define DATASECTION_PTR(base_addr, n_entry) \
     (void*)((byte_t*)base_addr + get_datasectionoff(n_entry))
 
-#define FILEFOOTER_PTR(base_addr, buf_cur) \
-    (DAT_FILE_FOOTER*)((byte_t*)base_addr + get_footeroff(buf_cur))
+#define FILEFOOTER_PTR(base_addr, filefooteroff) \
+    (DAT_FILE_FOOTER*)((byte_t*)base_addr + filefooteroff)
 
 
 void DAT_FILE_HEADER_fill(
     DAT_FILE_HEADER    *f_hdr_p,
     word_t              flags,
     word_t              entrycount,
-    size32_t            entrysize,
     uoff32_t            footeroff
 ) {
     if (!f_hdr_p) return;
@@ -130,4 +149,29 @@ void DAT_FILE_FOOTER_fill(
     if (!f_ftr_p) return;
     f_ftr_p->crc32 = compute_mem_crc32(buf, footeroff);
     f_ftr_p->magic = *(dword_t*)eof_magic_bytes;
+}
+
+static inline void indextable_membuf_init(
+    struct mem_buffer  *itmb_p,
+    byte_t              buf[],
+    dword_t             nentry
+) {
+    *itmb_p = (struct mem_buffer) {
+        .mem        = INDEXTABLE_PTR(buf),
+        .mem_cur    = 0,
+        .mem_end    = nentry * sizeof(DAT_INDEX_ENTRY),
+    };
+}
+
+static inline void datasection_membuf_init(
+    struct mem_buffer  *itmb_p,
+    byte_t              buf[],
+    size32_t            buf_size,
+    dword_t             nentry
+) {
+    *itmb_p = (struct mem_buffer) {
+        .mem        = DATASECTION_PTR(buf, nentry),
+        .mem_cur    = 0,
+        .mem_end    = buf_size - get_datasectionoff(nentry)
+    };
 }
